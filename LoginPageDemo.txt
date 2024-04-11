@@ -1,0 +1,191 @@
+class LoginPage extends StatefulWidget {
+  LoginPage({Key? key}) : super(key: key);
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  // text editing controllers
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  String? emailError;
+  String? passwordError;
+
+  // sign user in method
+  void signUserIn() async {
+    // Clear previous errors
+    setState(() {
+      emailError = null;
+      passwordError = null;
+    });
+
+    //try sign in
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        if (e.code == 'user-not-found') {
+          emailError = 'User not found';
+        } else if (e.code == 'wrong-password') {
+          passwordError = 'Wrong password';
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[300],
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 15),
+                //logo
+                const Icon(
+                  Icons.home_outlined,
+                  size: 100,
+                ),
+                const SizedBox(height: 30),
+                //welcome back msg
+                Text(
+                  'Hey there! Welcome back!',
+                  style: TextStyle(
+                    color: Colors.grey[800],
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                //email textfield
+                MyTextField(
+                  controller: emailController,
+                  hintText: 'email',
+                  obscureText: false,
+                  errorText: emailError,
+                ),
+                const SizedBox(height: 10),
+                //password textfield
+                MyTextField(
+                  controller: passwordController,
+                  hintText: 'Password',
+                  obscureText: true,
+                  errorText: passwordError,
+                ),
+                const SizedBox(height: 10),
+                //sign in button
+                MyButton(
+                  onTap: signUserIn,
+                ),
+                const SizedBox(height: 45),
+                //not a member? sign up
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Not a member?',
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Text(
+                      'Sign Up!',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MyTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final bool obscureText;
+  final String? errorText;
+
+  const MyTextField({
+    Key? key,
+    required this.controller,
+    required this.hintText,
+    required this.obscureText,
+    this.errorText,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: controller,
+            obscureText: obscureText,
+            decoration: InputDecoration(
+              hintText: hintText,
+              errorText: errorText,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          if (errorText != null)
+            Text(
+              errorText!,
+              style: TextStyle(color: Colors.red),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class MyButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const MyButton({Key? key, required this.onTap}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onTap,
+      child: Text('Sign In'),
+    );
+  }
+}
+
+class SquareTile extends StatelessWidget {
+  final String imagePath;
+
+  const SquareTile({Key? key, required this.imagePath}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.grey[300],
+      ),
+      child: Image.asset(imagePath),
+    );
+  }
+}
